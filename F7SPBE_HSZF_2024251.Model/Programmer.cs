@@ -33,6 +33,7 @@ namespace F7SPBE_HSZF_2024251.Model
         }
 
         public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
+        public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
         public Programmer(string name, string role, short dateOfJoining)
         {

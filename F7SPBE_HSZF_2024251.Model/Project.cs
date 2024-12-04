@@ -50,5 +50,15 @@ namespace F7SPBE_HSZF_2024251.Model
             Tasks = new HashSet<Task>(tasks);
             Deadlines = new List<DateTime>(deadlines);
         }
+
+        public Project(string name, string description, EStatus status, DateTime startDate, DateTime endDate, HashSet<DateTime> deadline)
+        {
+            Name = name;
+            Description = description;
+            Status = status;
+            StartDate = startDate;
+            EndDate = endDate;
+            Deadlines = new List<DateTime>(deadline);
+        }
     }
 }

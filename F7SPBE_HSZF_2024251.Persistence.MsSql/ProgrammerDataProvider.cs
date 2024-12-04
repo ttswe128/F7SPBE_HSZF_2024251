@@ -21,12 +21,18 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
 
         public List<Programmer> GetProgrammers()
         {
-            return ctx.Programmers.ToList();
+            return ctx.Programmers
+                .Include(p => p.Projects)
+                .Include(p => p.Tasks)
+                .ToList();
         }
 
         public Programmer GetProgrammer(int id)
         {
-            var p = ctx.Programmers.First(p => p.Id == id);
+            var p = ctx.Programmers
+                .Include(p => p.Projects)
+                .Include(p => p.Tasks)
+                .First(p => p.Id == id);
             if (p == null)
             {
                 throw new KeyNotFoundException($"Programmer with ID {id} not found.");

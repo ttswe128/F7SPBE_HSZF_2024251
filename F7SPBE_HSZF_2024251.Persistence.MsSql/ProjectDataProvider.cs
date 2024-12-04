@@ -87,7 +87,8 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
         {
             return ctx.Projects
                         .Include(p => p.Tasks)
-                        .Where(p => p.Tasks.All(task => task.Status.Equals(EStatus.CLOSED) && !p.Status.Equals(EStatus.CLOSED)))
+                        .Where(p => p.Tasks.All(task => task.Status.Equals(EStatus.CLOSED)))
+                        .Where(p => p.Status != (EStatus.CLOSED))
                         .ToList();
         }
 
@@ -143,7 +144,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             return project;
         }
 
-        public Project ModifyTask(Project project, Programmer programmer)
+        public Task GetTaskToModify(Project project, Programmer programmer)
         {
             var tasks = project.Tasks.Where(t => t.Responsible == programmer).ToList();
 
@@ -173,39 +174,26 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
                 }
             }
 
+            return selectedTask;
+        }
 
-            Console.WriteLine($"\nModifying task: {selectedTask.Id}");
-            Console.WriteLine("Enter new Task Name (leave blank to keep current): ");
-            string newTaskName = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskName))
+        public Project ModifyTask(Project project, Task task)
+        {
+            Project projectToModify = ctx.Projects
+                .Include(p => p.Participants)
+                .Include(p => p.Tasks)
+                .Where(p => p.Id == project.Id)
+                .First();
+
+            if (project.Id == null)
             {
-                selectedTask.Name = newTaskName;
+                throw new Exception("Project's Id is null");
             }
 
-            Console.WriteLine("Enter new Task Description (leave blank to keep current): ");
-            string newTaskDescription = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskDescription))
-            {
-                selectedTask.Description = newTaskDescription;
-            }
-
-            Console.WriteLine("Enter new Task Size (Leave blank to keep current): ");
-            string newTaskSize = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskSize))
-            {
-                selectedTask.Size = newTaskSize;
-            }
-
-            Console.WriteLine("Enter new Task Status (STARTED, IN_PROGRESS, CLOSED, leave blank to keep current): ");
-            string newTaskStatus = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskStatus) && Enum.TryParse(newTaskStatus, true, out EStatus taskStatus))
-            {
-                selectedTask.Status = taskStatus;
-            }
+            Task taskToModify = projectToModify.Tasks.Where(t => t.Id == task.Id).First();
+            task = taskToModify;
 
             ctx.SaveChanges();
-
-            Console.WriteLine($"\nTask '{selectedTask.Name}' modified successfully!");
 
             return project;
         }
@@ -237,6 +225,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             new Programmer("Michael", "Software Engineer", 2005),
             new Programmer("John", "Developer", 2007),
             new Programmer("Julia", "Developer", 2018),
+            new Programmer("Robert", "Administrator", 2021),
             ];
 
 
@@ -327,6 +316,14 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             new List<Task> { tasks[1], tasks[4] },
             new HashSet<DateTime> { new DateTime(2024, 8, 1), new DateTime(2024, 10, 1) }
             ),
+
+            new Project(
+            "Project Empty",
+            "Assign tasks and programmers",
+            EStatus.STARTED,
+            DateTime.Now,
+            new DateTime(2024, 12, 14),
+            new HashSet<DateTime> { new DateTime(2024, 12, 10), new DateTime(2024, 10, 11) })
         ];
 
 

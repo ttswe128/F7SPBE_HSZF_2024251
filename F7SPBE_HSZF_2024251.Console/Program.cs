@@ -197,7 +197,8 @@ namespace F7SPBE_HSZF_2024251
                 Console.WriteLine("Invalid input. Please try again");
             }
 
-            throw new Exception("Unexpected error");
+            Console.WriteLine("Unexpected error");
+            return Menu();
         }
         
         static void WelcomeMessage()
