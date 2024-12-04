@@ -60,11 +60,19 @@ namespace F7SPBE_HSZF_2024251.Application
             Console.WriteLine("List of Projects: \n");
             for (int i = 0; i < projects.Count; i++)
             {
-                Console.WriteLine($"{i + 1} - {projects[i].Name} - Status: {projects[i].Status} - Participants: {string.Join(", ", projects[i].Participants.Select(participant => participant.Name))}");
+                string names = null;
+                if (projects[i].Participants != null)
+                {
+                    names = string.Join(", ", projects[i].Participants.Select(participant => participant.Name));
+                }
+                else
+                {
+                    names = "none";
+                }
+                Console.WriteLine($"{i + 1} - {projects[i].Name} - Status: {projects[i].Status} - Participants: {names}");
             }
             Console.Write("\nEnter the Project's index: ");
             string input = Console.ReadLine();
-
             if (int.TryParse(input, out int projectIndex))
             {
                 var selectedProject = projects[projectIndex - 1];
@@ -172,7 +180,7 @@ namespace F7SPBE_HSZF_2024251.Application
         public Project AssignProgrammersToProject(List<Programmer> programmers)
         {
             List<Project> projectsWithoutProgrammers = GetProjectsWithoutProgrammers();
-            Console.Clear();
+            //Console.Clear();
 
             // List Projects
             Console.WriteLine("Projects without Programmers:\n");

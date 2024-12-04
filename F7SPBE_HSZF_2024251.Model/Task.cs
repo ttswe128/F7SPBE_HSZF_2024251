@@ -38,5 +38,15 @@ namespace F7SPBE_HSZF_2024251.Model
 
             this.Status = EStatus.STARTED;
         }
+
+        public Task(int id,string name, string description, Programmer responsible, string size, EStatus status)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+            Responsible = responsible;
+            Size = size;
+            Status = status;
+        }
     }
 }
