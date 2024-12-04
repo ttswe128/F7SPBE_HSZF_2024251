@@ -51,7 +51,55 @@ namespace F7SPBE_HSZF_2024251.Application
         
         public void UpdateTaskStatus(List<Project> projects, Programmer programmer)
         {
-            dp.UpdateTaskStatus(projects, programmer);
+            var tasks = dp.GetTasksWithProgrammer(projects, programmer);
+
+            if (!tasks.Any())
+            {
+                Console.WriteLine($"{programmer.Name} has no tasks assigned.");
+                return;
+            }
+
+            Console.WriteLine($"Tasks assigned to {programmer.Name}:");
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
+            }
+
+            Task selectedTask = null;
+            while (selectedTask == null)
+            {
+                Console.Write("\nEnter the Task's number here: ");
+                if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
+                {
+                    selectedTask = tasks[taskIndex - 1];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid selection. Please try again.");
+                }
+            }
+
+
+            Console.WriteLine($"\nModifying status for task: {selectedTask.Name}");
+            Console.WriteLine("Available statuses: STARTED, IN_PROGRESS, CLOSED");
+
+            EStatus newStatus;
+            while (true)
+            {
+                Console.Write("Enter new status: ");
+                if (Enum.TryParse(Console.ReadLine(), true, out newStatus))
+                {
+                    selectedTask.Status = newStatus;
+                    Console.WriteLine($"\nTask '{selectedTask.Name}' status updated to '{newStatus}' successfully!");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid status. Please try again.");
+                }
+            }
+
+            dp.UpdateTask(selectedTask.Id, selectedTask);
         }
     }
 }

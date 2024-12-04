@@ -51,5 +51,13 @@ namespace F7SPBE_HSZF_2024251.Model
         }
 
         public Programmer() { }
+
+        public Programmer(int id, string name, string role, short dateOfJoining)
+        {
+            this.Id = id;
+            this.Name = name;
+            this.Role = role;
+            this.DateOfJoining = dateOfJoining;
+        }
     }
 }

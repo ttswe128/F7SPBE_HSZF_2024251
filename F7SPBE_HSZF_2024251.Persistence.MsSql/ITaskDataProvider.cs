@@ -15,6 +15,6 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
         void CreateTasks(List<Task> tasks);
         void UpdateTask(int id, Task task);
         void ChangeStatus(int id, EStatus status);
-        void UpdateTaskStatus(List<Project> projects, Programmer programmer);
+        List<Task> GetTasksWithProgrammer(List<Project> projects, Programmer programmer);
     }
 }

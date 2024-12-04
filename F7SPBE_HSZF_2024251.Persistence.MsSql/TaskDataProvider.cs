@@ -68,66 +68,19 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
                 .Include(t => t.Responsible)
                 .First(t => t.Id == id);
 
-            if (t != null || !t.Id.Equals(task.Id)) throw new Exception("Task Update failed.");
+            if (t == null || !t.Id.Equals(task.Id)) throw new Exception("Task Update failed.");
 
             t = task;
 
             ctx.SaveChanges();
         }
-
-        public void UpdateTaskStatus(List<Project> projects, Programmer programmer)
+        
+        public List<Task> GetTasksWithProgrammer(List<Project> projects, Programmer programmer)
         {
-            var tasks = projects
-                .SelectMany(p => p.Tasks)
-                .Where(t => t.Responsible == programmer)
-                .ToList();
-
-            if (!tasks.Any())
-            {
-                Console.WriteLine($"{programmer.Name} has no tasks assigned.");
-                return;
-            }
-
-            Console.WriteLine($"Tasks assigned to {programmer.Name}:");
-            for (int i = 0; i < tasks.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
-            }
-
-            Task selectedTask = null;
-            while (selectedTask == null)
-            {
-                Console.Write("\nEnter the Task's number here: ");
-                if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
-                {
-                    selectedTask = tasks[taskIndex - 1];
-                }
-                else
-                {
-                    Console.WriteLine("Invalid selection. Please try again.");
-                }
-            }
-
-
-            Console.WriteLine($"\nModifying status for task: {selectedTask.Name}");
-            Console.WriteLine("Available statuses: STARTED, IN_PROGRESS, CLOSED");
-
-            EStatus newStatus;
-            while (true)
-            {
-                Console.WriteLine("Enter new status: ");
-                if (Enum.TryParse(Console.ReadLine(), true, out newStatus))
-                {
-                    selectedTask.Status = newStatus;
-                    ctx.SaveChanges();
-                    Console.WriteLine($"\nTask '{selectedTask.Name}' status updated to '{newStatus}' successfully!");
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("Invalid status. Please try again.");
-                }
-            }
+            return ctx.Programmers
+            .SelectMany(p => p.Tasks)
+            .Where(t => t.Responsible == programmer)
+            .ToList();
         }
     }
 }
