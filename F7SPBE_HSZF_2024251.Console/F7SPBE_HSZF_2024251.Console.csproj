@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\F7SPBE_HSZF_2024251.Application\F7SPBE_HSZF_2024251.Application.csproj" />
+    <ProjectReference Include="..\F7SPBE_HSZF_2024251.Model\F7SPBE_HSZF_2024251.Model.csproj" />
+    <ProjectReference Include="..\F7SPBE_HSZF_2024251.Persistence.MsSql\F7SPBE_HSZF_2024251.Persistence.MsSql.csproj" />
+  </ItemGroup>
+
+</Project>
