@@ -146,7 +146,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
 
         public Task GetTaskToModify(Project project, Programmer programmer)
         {
-            var tasks = project.Tasks.Where(t => t.Responsible == programmer).ToList();
+            var tasks = project.Tasks.Where(t => t.Responsible == programmer).Where(t => t.Responsible.Tasks.Any()).ToList();
 
             if (!tasks.Any())
             {

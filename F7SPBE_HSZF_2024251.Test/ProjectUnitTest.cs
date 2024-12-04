@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Task = F7SPBE_HSZF_2024251.Model.Task;
 
 namespace F7SPBE_HSZF_2024251.Test
 {
@@ -171,6 +172,96 @@ done
             dp.Verify(dp => dp.UpdateProject(5, projectToClose), Times.Once);
             var output = outputWriter.ToString();
             Assert.IsTrue(output.Contains("Project with ID 5 successfully closed."));
+        }
+
+        [Test]
+        public void AddTask()
+        {
+            // Arrange
+            var projects = Seeder.SeedProjects();
+            Project project = projects[2];
+            var programmer = project.Participants.First(p => p.Name.Equals("Carmack"));
+
+
+            // Simulated user input
+            var input = @"Test Task
+Test description
+smol
+STARTED
+";
+
+            using var inputReader = new StringReader(input);
+            using var outputWriter = new StringWriter();
+
+            Console.SetIn(inputReader);
+            Console.SetOut(outputWriter);
+
+            Task newTask = null;
+            dp.Setup(dp => dp.AddTask(It.IsAny<Project>(), It.IsAny<Programmer>(), It.IsAny<Task>()))
+                .Callback<Project, Programmer, Task>((p, prog, task) => newTask = task)
+                .Returns(project);
+
+            // Act
+            var result = service.AddTask(project, programmer);
+
+            // Assert
+            Assert.IsNotNull(newTask);
+            Assert.That(newTask.Name, Is.EqualTo("Test Task"));
+            Assert.That(newTask.Description, Is.EqualTo("Test description"));
+            Assert.That(newTask.Size, Is.EqualTo("smol"));
+            Assert.That(newTask.Status, Is.EqualTo(EStatus.STARTED));
+            Assert.That(newTask.Responsible, Is.EqualTo(programmer));
+
+            dp.Verify(dp => dp.AddTask(project, programmer, It.IsAny<Task>()), Times.Once);
+
+            var output = outputWriter.ToString();
+        }
+
+        [Test]
+        public void ModifyTask()
+        {
+            // Arrange
+            var projects = Seeder.SeedProjects();
+            Project project = projects[1];
+            var programmer = project.Participants.First(p => p.Name.Equals("Julia"));
+            var task = project.Tasks.First(t => t.Name == "Issue#57");
+
+
+            // Simulated user input
+            var input = @"Test Task
+Test description
+smol
+STARTED
+";
+
+            using var inputReader = new StringReader(input);
+            using var outputWriter = new StringWriter();
+
+            Console.SetIn(inputReader);
+            Console.SetOut(outputWriter);
+
+            Task modifiedTask = null;
+
+            dp.Setup(dp => dp.GetTaskToModify(It.IsAny<Project>(), It.IsAny<Programmer>())).Returns(task);
+            dp.Setup(dp => dp.ModifyTask(It.IsAny<Project>(), It.IsAny<Task>()))
+                .Callback<Project, Task>((p, task) => modifiedTask = task)
+                .Returns(project);
+
+            // Act
+            var result = service.ModifyTask(project, programmer);
+
+            // Assert
+            Assert.IsNotNull(modifiedTask);
+            Assert.That(modifiedTask.Name, Is.EqualTo("Test Task"));
+            Assert.That(modifiedTask.Description, Is.EqualTo("Test description"));
+            Assert.That(modifiedTask.Size, Is.EqualTo("smol"));
+            Assert.That(modifiedTask.Status, Is.EqualTo(EStatus.STARTED));
+            Assert.That(modifiedTask.Responsible.Name, Is.EqualTo(programmer.Name));
+
+            dp.Verify(dp => dp.ModifyTask(project, It.IsAny<Task>()), Times.Once);
+
+            var output = outputWriter.ToString();
+            Assert.IsTrue(output.Contains("Task 'Test Task' modified successfully!"));
         }
     }
 }
