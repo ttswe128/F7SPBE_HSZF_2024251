@@ -106,6 +106,8 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
         public List<Project> GetProjectsOfProgrammer(Programmer programmer)
         {
             List<Project> projects = ctx.Projects
+                .Include(p => p.Participants)
+                .Include(p => p.Tasks)
                 .Where(p => p.Participants
                 .Contains(programmer))
                 .ToList();

@@ -77,8 +77,6 @@ namespace F7SPBE_HSZF_2024251
                         {
                             List<Project> projectToSelect = projectService.GetProjectsOfProgrammer(programmerSignedIn);
 
-
-
                             Console.WriteLine($"Projects assigned to {programmerSignedIn.Name}:");
                             for (int i = 0; i < projectToSelect.Count; i++)
                             {
@@ -99,7 +97,6 @@ namespace F7SPBE_HSZF_2024251
                                     Console.WriteLine("Invalid selection. Please try again.");
                                 }
                             }
-
 
 
                             input3 = AddOrModifyTaskMenu();

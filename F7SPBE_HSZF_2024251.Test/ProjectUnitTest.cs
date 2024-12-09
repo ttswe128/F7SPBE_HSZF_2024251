@@ -32,7 +32,7 @@ namespace F7SPBE_HSZF_2024251.Test
         {
             // Arrange
             int id = 1;
-            var projects = Seeder.SeedProjects();
+            var projects = service.GetProjects();
 
             dp.Setup(m => m.GetProject(id)).Returns(projects[0]);
 
@@ -56,9 +56,6 @@ namespace F7SPBE_HSZF_2024251.Test
                     new DateTime(2024, 12, 20)
                 ];
             Project project = new("Project Test", "Test description", new DateTime(2024, 11, 1), deadlines, EStatus.STARTED);
-
-            //dp.Setup(dp => dp.CreateProject(It.IsAny<Project>()))
-            //                .Callback<Project>(p => capturedProject = p);
 
             // Act
             service.CreateProject(project);
@@ -110,7 +107,7 @@ namespace F7SPBE_HSZF_2024251.Test
         public void CloseProject()
         {
             // Arrange
-            var projects = Seeder.SeedProjects();
+            var projects = service.GetProjects();
             var projectToClose = projects[4];
 
             dp.Setup(dp => dp.GetProject(5)).Returns(projectToClose);
@@ -127,7 +124,7 @@ namespace F7SPBE_HSZF_2024251.Test
         public void AddTask()
         {
             // Arrange
-            var projects = Seeder.SeedProjects();
+            var projects = service.GetProjects();
             Project project = projects[2];
             var programmer = project.Participants.First(p => p.Name.Equals("Carmack"));
 
@@ -152,7 +149,7 @@ namespace F7SPBE_HSZF_2024251.Test
         public void ModifyTask()
         {
             // Arrange
-            var projects = Seeder.SeedProjects();
+            var projects = service.GetProjects();
             Project project = projects[1];
             var programmer = project.Participants.First(p => p.Name.Equals("Julia"));
             var task = project.Tasks.First(t => t.Name == "Issue#57");
@@ -175,6 +172,32 @@ namespace F7SPBE_HSZF_2024251.Test
             Assert.That(modifiedTask.Responsible.Name, Is.EqualTo(programmer.Name));
 
             dp.Verify(dp => dp.ModifyTask(project, It.IsAny<Task>()), Times.Once);
+        }
+
+        [Test]
+        public void GetProjectsOfProgrammer()
+        {
+            // Arrange
+            var projects = service.GetProjects();
+
+            Programmer programmer = projects
+                .SelectMany(p => p.Participants)
+                .FirstOrDefault(participant => participant.Name == "Carmack");
+
+            programmer.Projects.Add(projects.First(p => p.Name == "Project Gamma"));
+            programmer.Projects.Add(projects.First(p => p.Name == "Project Epsilon"));
+
+            dp.Setup(dp => dp.GetProjectsOfProgrammer(programmer)).Returns((List<Project>)programmer.Projects);
+
+
+            // Act
+            List<Project> projectsReturned = service.GetProjectsOfProgrammer(programmer);
+
+            // Assert
+            Assert.IsNotNull(projectsReturned);
+            Assert.That(projectsReturned.Any(), Is.True);
+            Assert.That(projectsReturned.Count() == 2);
+            dp.Verify(dp => dp.GetProjectsOfProgrammer(programmer), Times.Once);
         }
     }
 }

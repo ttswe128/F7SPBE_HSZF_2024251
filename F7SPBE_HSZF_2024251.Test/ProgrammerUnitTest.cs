@@ -42,5 +42,16 @@ namespace F7SPBE_HSZF_2024251.Test
             Assert.That(p, Is.EqualTo(programmer));
             dp.Verify(dp => dp.GetProgrammer(id), Times.Once);
         }
+
+        [Test]
+        public void GetProgrammers()
+        {
+            // Act
+            List<Programmer> programmers = service.GetProgrammers();
+
+            // Assert
+            Assert.That(programmers.Count() == 10);
+            dp.Verify(dp => dp.GetProgrammers(), Times.Once);
+        }
     }
 }
