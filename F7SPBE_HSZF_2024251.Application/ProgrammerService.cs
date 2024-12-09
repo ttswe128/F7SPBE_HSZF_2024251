@@ -43,26 +43,6 @@ namespace F7SPBE_HSZF_2024251.Application
             dp.UpdateProgrammer(id, programmer);
         }
 
-        public Programmer SignIn(List<Programmer> programmers)
-        {
-            Console.WriteLine("Please select the programmer you want sign in as!\n");
-            for (int i = 0; i < programmers.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {programmers[i].Name} - {programmers[i].Role} (Year of joining: {programmers[i].DateOfJoining})");
-            }
-
-            Console.Write("\nEnter your number here: ");
-            if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= programmers.Count)
-            {
-                return programmers[index - 1];
-            }
-            else
-            {
-                Console.WriteLine("\nThe number entered is incorrect. Please try again.");
-                return null;
-            }
-        }
-
         public void ExportProgrammersPerformance()
         {
 

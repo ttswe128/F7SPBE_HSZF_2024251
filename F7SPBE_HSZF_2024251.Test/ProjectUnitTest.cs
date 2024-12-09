@@ -226,42 +226,24 @@ STARTED
             var programmer = project.Participants.First(p => p.Name.Equals("Julia"));
             var task = project.Tasks.First(t => t.Name == "Issue#57");
 
+            Task modifiedTask = new Task("Issue#57", "Develop Backend tests", programmer, "smol", EStatus.STARTED);
 
-            // Simulated user input
-            var input = @"Test Task
-Test description
-smol
-STARTED
-";
-
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
-
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
-
-            Task modifiedTask = null;
-
-            dp.Setup(dp => dp.GetTaskToModify(It.IsAny<Project>(), It.IsAny<Programmer>())).Returns(task);
             dp.Setup(dp => dp.ModifyTask(It.IsAny<Project>(), It.IsAny<Task>()))
-                .Callback<Project, Task>((p, task) => modifiedTask = task)
                 .Returns(project);
 
             // Act
-            var result = service.ModifyTask(project, programmer);
+            var result = service.ModifyTask(project, modifiedTask, programmer);
 
             // Assert
-            Assert.IsNotNull(modifiedTask);
-            Assert.That(modifiedTask.Name, Is.EqualTo("Test Task"));
-            Assert.That(modifiedTask.Description, Is.EqualTo("Test description"));
+            var taskResult = result.Tasks.First(t => t.Name == "Issue#57");
+            Assert.IsNotNull(taskResult);
+            Assert.That(taskResult.Id, Is.EqualTo(task.Id));
+            Assert.That(modifiedTask.Description, Is.EqualTo("Develop Backend tests"));
             Assert.That(modifiedTask.Size, Is.EqualTo("smol"));
             Assert.That(modifiedTask.Status, Is.EqualTo(EStatus.STARTED));
             Assert.That(modifiedTask.Responsible.Name, Is.EqualTo(programmer.Name));
 
             dp.Verify(dp => dp.ModifyTask(project, It.IsAny<Task>()), Times.Once);
-
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Task 'Test Task' modified successfully!"));
         }
     }
 }

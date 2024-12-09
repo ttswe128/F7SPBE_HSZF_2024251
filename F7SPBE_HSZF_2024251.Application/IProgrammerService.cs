@@ -14,7 +14,6 @@ namespace F7SPBE_HSZF_2024251.Application
         void CreateProgrammer(Programmer programmer);
         void CreateProgrammers(List<Programmer> programmers);
         void UpdateProgrammer(int id, Programmer programmer);
-        Programmer SignIn(List<Programmer> programmers);
         void ExportProgrammersPerformance();
     }
 }
