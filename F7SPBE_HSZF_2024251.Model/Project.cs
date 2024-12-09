@@ -60,5 +60,25 @@ namespace F7SPBE_HSZF_2024251.Model
             EndDate = endDate;
             Deadlines = new List<DateTime>(deadline);
         }
+
+        public Project(string name, string description, DateTime startDate, HashSet<DateTime> deadline, EStatus status)
+        {
+            Name = name;
+            Description = description;
+            StartDate = startDate;
+            Deadlines = new List<DateTime>(deadline);
+            Status = status;
+        }
+
+        public Project(int id, string name, string description, EStatus status, DateTime startDate, DateTime endDate, HashSet<DateTime> deadline)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+            Status = status;
+            StartDate = startDate;
+            EndDate = endDate;
+            Deadlines = new List<DateTime>(deadline);
+        }
     }
 }

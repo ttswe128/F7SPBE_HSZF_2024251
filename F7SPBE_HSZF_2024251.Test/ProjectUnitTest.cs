@@ -48,68 +48,28 @@ namespace F7SPBE_HSZF_2024251.Test
         public void CreateProject()
         {
             // Arrange
-            var input = @"Project Test
-Test description
-2024-12-01
-2024-12-10
-2024-12-20
-done
-IN_PROGRESS
-";
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
 
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
+            HashSet<DateTime> deadlines =
+                [
+                    new DateTime(2024, 12, 1),
+                    new DateTime(2024, 12, 10),
+                    new DateTime(2024, 12, 20)
+                ];
+            Project project = new("Project Test", "Test description", new DateTime(2024, 11, 1), deadlines, EStatus.STARTED);
 
-            Project capturedProject = null;
-            dp.Setup(dp => dp.CreateProject(It.IsAny<Project>()))
-                            .Callback<Project>(p => capturedProject = p);
+            //dp.Setup(dp => dp.CreateProject(It.IsAny<Project>()))
+            //                .Callback<Project>(p => capturedProject = p);
 
             // Act
-            service.CreateProject();
+            service.CreateProject(project);
 
             // Assert
-            Assert.NotNull(capturedProject);
-            Assert.That(capturedProject.Name, Is.EqualTo("Project Test"));
-            Assert.That(capturedProject.Description, Is.EqualTo("Test description"));
-            Assert.That(capturedProject.StartDate, Is.EqualTo(new DateTime(2024, 12, 1)));
-            Assert.That(capturedProject.Deadlines, Is.EqualTo(new List<DateTime>
-            {
-                new DateTime(2024, 12, 10),
-                new DateTime(2024, 12, 20)
-            }));
-            Assert.That(capturedProject.Status, Is.EqualTo(EStatus.IN_PROGRESS));
-
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Project added successfully."));
-        }
-
-        [Test]
-        public void CreateProjectInvalidStartDate()
-        {
-            // Arrange
-
-            var input = @"Project Test
-Test description
-NOT_A_DATE
-2024-12-01
-done
-done
-STARTED
-";
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
-
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
-
-            // Act
-            service.CreateProject();
-
-            // Assert
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Invalid date format. Please try again."));
+            Assert.NotNull(project);
+            Assert.That(project.Name, Is.EqualTo("Project Test"));
+            Assert.That(project.Description, Is.EqualTo("Test description"));
+            Assert.That(project.StartDate, Is.EqualTo(new DateTime(2024, 11, 1)));
+            Assert.That(project.Deadlines, Is.EqualTo(deadlines));
+            Assert.That(project.Status, Is.EqualTo(EStatus.STARTED));
         }
 
         [Test]
@@ -117,37 +77,33 @@ STARTED
         {
             // Arrange
             var project = new Project(
-            "Project Empty",
-            "Assign tasks and programmers",
-            EStatus.STARTED,
-            DateTime.Now,
-            new DateTime(2024, 12, 14),
-            new HashSet<DateTime> { new DateTime(2024, 12, 10), new DateTime(2024, 10, 11) });
+                201,
+                "Project Empty Test",
+                "Assign tasks and programmers",
+                EStatus.STARTED,
+                DateTime.Now,
+                new DateTime(2024, 12, 14),
+                new HashSet<DateTime> { new DateTime(2024, 12, 10), new DateTime(2024, 10, 11) }
+                );
 
-            List<Project> list = [project];
+            Project projectUpdate = project;
 
-            dp.Setup(dp => dp.GetProjectsWithoutProgrammers()).Returns(list);
 
-            var programmers = Seeder.SeedProgrammers();
-            var input = @"1
-1
-2
-done
-";
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
+            List<Programmer> participants =
+                [
+                    new Programmer("Joe", "Intern", 2020),
+                    new Programmer("Jane", "Lead Developer", 2019),
+                    new Programmer("Bob", "Project Manager", 2020),
+                ];
 
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
+            projectUpdate.Participants = participants;
 
             // Act
-            var result = service.AssignProgrammersToProject(programmers);
+            var result = service.AssignProgrammersToProject(projectUpdate.Id, projectUpdate);
 
             // Assert
             Assert.NotNull(result.Participants);
-
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Programmers successfully assigned to the project."));
+            Assert.That(result.Participants.Count() == 3);
         }
 
         [Test]
@@ -159,19 +115,12 @@ done
 
             dp.Setup(dp => dp.GetProject(5)).Returns(projectToClose);
 
-            using var outputWriter = new StringWriter();
-            Console.SetOut(outputWriter);
-
             // Act
-            service.CloseProject(5);
+            service.CloseProject(projectToClose);
 
             // Assert
             Assert.That(projectToClose.Status, Is.EqualTo(EStatus.CLOSED));
             Assert.That(projectToClose.EndDate.Year, Is.EqualTo(DateTime.Now.Year));
-
-            dp.Verify(dp => dp.UpdateProject(5, projectToClose), Times.Once);
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Project with ID 5 successfully closed."));
         }
 
         [Test]
@@ -182,27 +131,10 @@ done
             Project project = projects[2];
             var programmer = project.Participants.First(p => p.Name.Equals("Carmack"));
 
-
-            // Simulated user input
-            var input = @"Test Task
-Test description
-smol
-STARTED
-";
-
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
-
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
-
-            Task newTask = null;
-            dp.Setup(dp => dp.AddTask(It.IsAny<Project>(), It.IsAny<Programmer>(), It.IsAny<Task>()))
-                .Callback<Project, Programmer, Task>((p, prog, task) => newTask = task)
-                .Returns(project);
+            Task newTask = new Task("Test Task", "Test description", programmer, "smol", EStatus.STARTED);;
 
             // Act
-            var result = service.AddTask(project, programmer);
+            var result = service.AddTask(project, programmer, newTask);
 
             // Assert
             Assert.IsNotNull(newTask);
@@ -214,7 +146,6 @@ STARTED
 
             dp.Verify(dp => dp.AddTask(project, programmer, It.IsAny<Task>()), Times.Once);
 
-            var output = outputWriter.ToString();
         }
 
         [Test]

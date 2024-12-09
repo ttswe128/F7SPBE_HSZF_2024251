@@ -55,58 +55,14 @@ namespace F7SPBE_HSZF_2024251.Application
             dp.AssignProgrammersToProject(projectId, programmerIds);
         }
 
-        public Project ListAndSelectProjects(List<Project> projects)
+        public void CloseProject(Project project)
         {
-            Console.WriteLine("List of Projects: \n");
-            for (int i = 0; i < projects.Count; i++)
-            {
-                string names = null;
-                if (projects[i].Participants != null)
-                {
-                    names = string.Join(", ", projects[i].Participants.Select(participant => participant.Name));
-                }
-                else
-                {
-                    names = "none";
-                }
-                Console.WriteLine($"{i + 1} - {projects[i].Name} - Status: {projects[i].Status} - Participants: {names}");
-            }
-            Console.Write("\nEnter the Project's index: ");
-            string input = Console.ReadLine();
-            if (int.TryParse(input, out int projectIndex))
-            {
-                var selectedProject = projects[projectIndex - 1];
-                if (selectedProject != null)
-                {
-                    return selectedProject;
-                }
-            }
-
-            Console.WriteLine("Invalid selection. Returning to the main menu.");
-            return null;
-
-        }
-
-        public void CloseProject(int id)
-        {
-            var project = dp.GetProject(id);
-
-            if (project.Status == EStatus.CLOSED) Console.WriteLine("This Project is already closed");
-
-            if (project.Tasks.Any(task => task.Status != EStatus.CLOSED))
-            {
-                Console.WriteLine("The project cannot be closed because not all tasks are completed.");
-                return;
-            }
 
             project.Status = EStatus.CLOSED;
             project.EndDate = DateTime.Now;
 
 
-            dp.UpdateProject(id, project);
-
-
-            Console.WriteLine($"\nProject with ID {id} successfully closed.");
+            dp.UpdateProject(project.Id, project);
         }
 
         public void UpdateProject(int id, Project project)
@@ -116,132 +72,10 @@ namespace F7SPBE_HSZF_2024251.Application
 
         public List<Project> GetClosableProjects() => dp.GetClosableProjects();
 
-        public void CreateProject()
+
+        public Project AssignProgrammersToProject(int id, Project projectSelected)
         {
-            Console.WriteLine("Creating Project...\n");
-
-            // Name
-            Console.Write("Enter the project's name: ");
-            string name = Console.ReadLine();
-
-            // Description
-            Console.Write("Enter the project's description: ");
-            string description = Console.ReadLine();
-
-            // StartDate
-            Console.Write("Enter the project's start date (yyyy-MM-dd): ");
-            DateTime startDate;
-            while (!DateTime.TryParse(Console.ReadLine(), out startDate))
-            {
-                Console.WriteLine("Invalid date format. Please try again.");
-            }
-
-            // Deadlines
-            List<DateTime> deadlines = new List<DateTime>();
-            Console.WriteLine("Enter project deadlines (yyyy-MM-dd). Type 'done' to finish:");
-            while (true)
-            {
-                string input = Console.ReadLine();
-                if (input.ToLower() == "done")
-                    break;
-
-                if (DateTime.TryParse(input, out DateTime deadline))
-                {
-                    deadlines.Add(deadline);
-                }
-                else
-                {
-                    Console.WriteLine("Invalid date format. Please try again.");
-                }
-            }
-
-            // Status
-            Console.Write("Enter the project's status (STARTED, IN_PROGRESS, CLOSED): ");
-            EStatus status;
-            while (!Enum.TryParse(Console.ReadLine(), true, out status))
-            {
-                Console.WriteLine("Invalid status. Please try again.");
-            }
-
-            var newProject = new Project
-            {
-                Name = name,
-                Description = description,
-                StartDate = startDate,
-                Deadlines = deadlines,
-                Status = status
-            };
-
-            dp.CreateProject(newProject);
-
-            Console.WriteLine("Project added successfully.");
-        }
-
-        public Project AssignProgrammersToProject(List<Programmer> programmers)
-        {
-            List<Project> projectsWithoutProgrammers = GetProjectsWithoutProgrammers();
-            //Console.Clear();
-
-            // List Projects
-            Console.WriteLine("Projects without Programmers:\n");
-            for (int i = 0; i < projectsWithoutProgrammers.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. Name: {projectsWithoutProgrammers[i].Name} - Description: {projectsWithoutProgrammers[i].Description} - Start: {projectsWithoutProgrammers[i].StartDate} - End: {projectsWithoutProgrammers[i].EndDate} - Status: {projectsWithoutProgrammers[i].Status}");
-
-            }
-
-            // Project selection
-            Console.Write("\nEnter the Project's number here: ");
-            Project projectSelected = null;
-            while (projectSelected == null)
-            {
-                if (int.TryParse(Console.ReadLine(), out int projectIndex) && projectIndex > 0 && projectIndex <= projectsWithoutProgrammers.Count)
-                {
-                    projectSelected = projectsWithoutProgrammers[projectIndex - 1];
-                }
-                else
-                {
-                    Console.WriteLine("\nThe number entered is incorrect. Please try again.");
-                }
-            }
-
-            // List Programmers
-            Console.WriteLine("\nList of Programmers:\n");
-            for (int i = 0; i < programmers.Count; i++)
-            {
-                Console.WriteLine($"{programmers[i].Id}. {programmers[i].Name} - {programmers[i].Role} (Year of joining: {programmers[i].DateOfJoining})");
-            }
-
-            // Programmers selection
-            List<int> ids = new List<int>();
-            Console.WriteLine("\nEnter the Programmers' IDs . Type 'done' to finish: ");
-            while (true)
-            {
-                string input = Console.ReadLine();
-                if (input.ToLower() == "done")
-                    break;
-
-                if (int.TryParse(input, out int programmerId) && programmerId > 0 && programmerId <= programmers.Count)
-                {
-                    if (!ids.Contains(programmerId))
-                        ids.Add(programmerId);
-                }
-                else
-                {
-                    Console.WriteLine("Invalid input. Please enter at least one valid programmer number.");
-                }
-            }
-
-            List<Programmer> programmersToAssign = programmers
-                .Where(p => ids.Contains(p.Id))
-                .ToList();
-
-
-            projectSelected.Participants = programmersToAssign;
-
-            UpdateProject(projectSelected.Id, projectSelected);
-
-            Console.WriteLine("\nProgrammers successfully assigned to the project.");
+            dp.UpdateProject(projectSelected.Id, projectSelected);
 
             return projectSelected;
 
@@ -251,46 +85,16 @@ namespace F7SPBE_HSZF_2024251.Application
         {
 
             List<Project> projects = dp.GetProjectsOfProgrammer(programmer);
-            if (!projects.Any()) Console.WriteLine($"{programmer.Name} is not assigned to any projects.");
+            if (!projects.Any()) throw new Exception($"{programmer.Name} is not assigned to any projects.");
 
             return projects;
 
         }
 
-        public Project AddTask(Project project, Programmer programmer)
+        public Project AddTask(Project project, Programmer programmer, Task task)
         {
 
-            Console.WriteLine($"\nAdding a task to project: {project.Name}");
-            Console.Write("Enter Task Name: ");
-            string taskName = Console.ReadLine();
-
-            Console.Write("Enter Task Description: ");
-            string taskDescription = Console.ReadLine();
-
-            Console.Write("Enter Task Size: ");
-            string taskSize = Console.ReadLine();
-
-            EStatus taskStatus;
-            while (true)
-            {
-                Console.Write("Enter Task Status (STARTED, IN_PROGRESS, CLOSED): ");
-                if (Enum.TryParse(Console.ReadLine(), true, out taskStatus))
-                {
-                    break;
-                }
-                Console.WriteLine("Invalid status. Please try again.");
-            }
-
-            var newTask = new Task
-            {
-                Name = taskName,
-                Description = taskDescription,
-                Responsible = programmer,
-                Size = taskSize,
-                Status = taskStatus
-            };
-
-            Project projectToReturn = dp.AddTask(project, programmer, newTask);
+            Project projectToReturn = dp.AddTask(project, programmer, task);
             return projectToReturn;
         }
 

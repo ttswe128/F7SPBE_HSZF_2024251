@@ -4,6 +4,7 @@ using F7SPBE_HSZF_2024251.Persistence.MsSql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
+using System.Runtime.Intrinsics.Arm;
 using System.Threading.Tasks;
 using Task = F7SPBE_HSZF_2024251.Model.Task;
 
@@ -58,14 +59,14 @@ namespace F7SPBE_HSZF_2024251
                 switch (button)
                 {
                     case "1":
-                        projectService.CreateProject();
+                        CreateProject(projectService);
 
                         Console.WriteLine("\nPress any key to return to the menu...");
                         Console.ReadKey();
                         break;
                     case "2":
-                        List<Programmer> programmersForProjects = programmerService.GetProgrammers();
-                        projectService.AssignProgrammersToProject(programmersForProjects);
+
+                        AssignProgrammersToProject(projectService, programmerService);
 
                         Console.WriteLine("\nPress any key to return to the menu...");
                         Console.ReadKey();
@@ -104,7 +105,7 @@ namespace F7SPBE_HSZF_2024251
                             input3 = AddOrModifyTaskMenu();
                             if (input3.Equals("1"))
                             {
-                                projectService.AddTask(selectedProject, programmerSignedIn);
+                                AddTask(projectService, selectedProject, programmerSignedIn);
                             }
                             if (input3.Equals("2"))
                             {
@@ -118,61 +119,7 @@ namespace F7SPBE_HSZF_2024251
                         Console.ReadKey();
                         break;
                     case "4":
-
-                        List<Project> projects = projectService.GetProjects();
-                        List<Task> tasks = taskService.GetTasksWithProgrammer(projects, programmerSignedIn);
-
-
-
-                        if (!tasks.Any())
-                        {
-                            Console.WriteLine($"{programmerSignedIn.Name} has no tasks assigned.");
-                            return;
-                        }
-
-                        Console.WriteLine($"Tasks assigned to {programmerSignedIn.Name}:");
-                        for (int i = 0; i < tasks.Count; i++)
-                        {
-                            Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
-                        }
-
-                        Task selectedTask = null;
-                        while (selectedTask == null)
-                        {
-                            Console.Write("\nEnter the Task's number here: ");
-                            if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
-                            {
-                                selectedTask = tasks[taskIndex - 1];
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid selection. Please try again.");
-                            }
-                        }
-
-
-                        Console.WriteLine($"\nModifying status for task: {selectedTask.Name}");
-                        Console.WriteLine("Available statuses: STARTED, IN_PROGRESS, CLOSED");
-
-                        EStatus newStatus;
-                        while (true)
-                        {
-                            Console.Write("Enter new status: ");
-                            if (Enum.TryParse(Console.ReadLine(), true, out newStatus))
-                            {
-                                selectedTask.Status = newStatus;
-                                Console.WriteLine($"\nTask '{selectedTask.Name}' status updated to '{newStatus}' successfully!");
-                                break;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid status. Please try again.");
-                            }
-                        }
-
-
-                        taskService.UpdateTaskStatus(selectedTask.Id, selectedTask);
-
+                        ChangeStatus(projectService, taskService, programmerSignedIn);
 
                         Console.WriteLine("\nPress any key to return to the menu...");
                         Console.ReadKey();
@@ -180,8 +127,16 @@ namespace F7SPBE_HSZF_2024251
 
                     case "5":
                         var projects5 = projectService.GetClosableProjects();
-                        var selectedP = projectService.ListAndSelectProjects(projects5);
-                        projectService.CloseProject(selectedP.Id);
+                        var selectedP = ListAndSelectProjects(projects5);
+                        var project = projectService.GetProject(selectedP.Id);
+
+                        if (project.Status == EStatus.CLOSED) Console.WriteLine("This Project is already closed");
+
+                        if (project.Tasks.Any(task => task.Status != EStatus.CLOSED)) Console.WriteLine("The project cannot be closed because not all tasks are completed.");
+
+                        projectService.CloseProject(project);
+
+                        Console.WriteLine($"\nProject with ID {selectedP.Id} successfully closed.");
 
                         Console.WriteLine("\nPress any key to return to the menu...");
                         Console.ReadKey();
@@ -218,6 +173,257 @@ namespace F7SPBE_HSZF_2024251
                 Console.Clear();
             }
 
+
+        }
+
+        static void AssignProgrammersToProject(IProjectService projectService, IProgrammerService programmerService)
+        {
+            List<Programmer> programmersForProjects = programmerService.GetProgrammers();
+            List<Project> projectsWithoutProgrammers = projectService.GetProjectsWithoutProgrammers();
+
+            Console.WriteLine("Projects without Programmers:\n");
+            for (int i = 0; i < projectsWithoutProgrammers.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. Name: {projectsWithoutProgrammers[i].Name} - Description: {projectsWithoutProgrammers[i].Description} - Start: {projectsWithoutProgrammers[i].StartDate} - End: {projectsWithoutProgrammers[i].EndDate} - Status: {projectsWithoutProgrammers[i].Status}");
+
+            }
+
+            Console.Write("\nEnter the Project's number here: ");
+            Project projectSelected = null;
+            while (projectSelected == null)
+            {
+                if (int.TryParse(Console.ReadLine(), out int projectIndex) && projectIndex > 0 && projectIndex <= projectsWithoutProgrammers.Count)
+                {
+                    projectSelected = projectsWithoutProgrammers[projectIndex - 1];
+                }
+                else
+                {
+                    Console.WriteLine("\nThe number entered is incorrect. Please try again.");
+                }
+            }
+
+            Console.WriteLine("\nList of Programmers:\n");
+            for (int i = 0; i < programmersForProjects.Count; i++)
+            {
+                Console.WriteLine($"{programmersForProjects[i].Id}. {programmersForProjects[i].Name} - {programmersForProjects[i].Role} (Year of joining: {programmersForProjects[i].DateOfJoining})");
+            }
+
+            List<int> ids = new List<int>();
+            Console.WriteLine("\nEnter the Programmers' IDs . Type 'done' to finish: ");
+            while (true)
+            {
+                string input = Console.ReadLine();
+                if (input.ToLower() == "done")
+                    break;
+
+                if (int.TryParse(input, out int programmerId) && programmerId > 0 && programmerId <= programmersForProjects.Count)
+                {
+                    if (!ids.Contains(programmerId))
+                        ids.Add(programmerId);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter at least one valid programmer number.");
+                }
+            }
+
+            List<Programmer> programmersToAssign = programmersForProjects
+                .Where(p => ids.Contains(p.Id))
+                .ToList();
+
+
+            projectSelected.Participants = programmersToAssign;
+
+            projectService.AssignProgrammersToProject(projectSelected.Id, projectSelected);
+
+            Console.WriteLine("\nProgrammers successfully assigned to the project.");
+        }
+
+        static Project AddTask(IProjectService projectService, Project project, Programmer programmer)
+        {
+
+            Console.WriteLine($"\nAdding a task to project: {project.Name}");
+            Console.Write("Enter Task Name: ");
+            string taskName = Console.ReadLine();
+
+            Console.Write("Enter Task Description: ");
+            string taskDescription = Console.ReadLine();
+
+            Console.Write("Enter Task Size: ");
+            string taskSize = Console.ReadLine();
+
+            EStatus taskStatus;
+            while (true)
+            {
+                Console.Write("Enter Task Status (STARTED, IN_PROGRESS, CLOSED): ");
+                if (Enum.TryParse(Console.ReadLine(), true, out taskStatus))
+                {
+                    break;
+                }
+                Console.WriteLine("Invalid status. Please try again.");
+            }
+
+            var newTask = new Task
+            {
+                Name = taskName,
+                Description = taskDescription,
+                Responsible = programmer,
+                Size = taskSize,
+                Status = taskStatus
+            };
+
+            Project projectToReturn = projectService.AddTask(project, programmer, newTask);
+            return projectToReturn;
+        }
+
+        static void CreateProject(IProjectService projectService)
+        {
+            Console.WriteLine("Creating Project...\n");
+
+            // Name
+            Console.Write("Enter the project's name: ");
+            string name = Console.ReadLine();
+
+            // Description
+            Console.Write("Enter the project's description: ");
+            string description = Console.ReadLine();
+
+            // StartDate
+            Console.Write("Enter the project's start date (yyyy-MM-dd): ");
+            DateTime startDate;
+            while (!DateTime.TryParse(Console.ReadLine(), out startDate))
+            {
+                Console.WriteLine("Invalid date format. Please try again.");
+            }
+
+            // Deadlines
+            List<DateTime> deadlines = new List<DateTime>();
+            Console.WriteLine("Enter project deadlines (yyyy-MM-dd). Type 'done' to finish:");
+            while (true)
+            {
+                string input = Console.ReadLine();
+                if (input.ToLower() == "done")
+                    break;
+
+                if (DateTime.TryParse(input, out DateTime deadline))
+                {
+                    deadlines.Add(deadline);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid date format. Please try again.");
+                }
+            }
+
+            // Status
+            Console.Write("Enter the project's status (STARTED, IN_PROGRESS, CLOSED): ");
+            EStatus status;
+            while (!Enum.TryParse(Console.ReadLine(), true, out status))
+            {
+                Console.WriteLine("Invalid status. Please try again.");
+            }
+
+            var newProject = new Project
+            {
+                Name = name,
+                Description = description,
+                StartDate = startDate,
+                Deadlines = deadlines,
+                Status = status
+            };
+
+            projectService.CreateProject(newProject);
+
+            Console.WriteLine("Project added successfully.");
+        }
+
+        static void ChangeStatus(IProjectService projectService, ITaskService taskService, Programmer programmerSignedIn)
+        {
+            List<Project> projects = projectService.GetProjects();
+            List<Task> tasks = taskService.GetTasksWithProgrammer(projects, programmerSignedIn);
+
+
+
+            if (!tasks.Any())
+            {
+                Console.WriteLine($"{programmerSignedIn.Name} has no tasks assigned.");
+                return;
+            }
+
+            Console.WriteLine($"Tasks assigned to {programmerSignedIn.Name}:");
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
+            }
+
+            Task selectedTask = null;
+            while (selectedTask == null)
+            {
+                Console.Write("\nEnter the Task's number here: ");
+                if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
+                {
+                    selectedTask = tasks[taskIndex - 1];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid selection. Please try again.");
+                }
+            }
+
+
+            Console.WriteLine($"\nModifying status for task: {selectedTask.Name}");
+            Console.WriteLine("Available statuses: STARTED, IN_PROGRESS, CLOSED");
+
+            EStatus newStatus;
+            while (true)
+            {
+                Console.Write("Enter new status: ");
+                if (Enum.TryParse(Console.ReadLine(), true, out newStatus))
+                {
+                    selectedTask.Status = newStatus;
+                    Console.WriteLine($"\nTask '{selectedTask.Name}' status updated to '{newStatus}' successfully!");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid status. Please try again.");
+                }
+            }
+
+
+            taskService.UpdateTaskStatus(selectedTask.Id, selectedTask);
+
+        }
+
+        static Project ListAndSelectProjects(List<Project> projects)
+        {
+            Console.WriteLine("List of Projects: \n");
+            for (int i = 0; i < projects.Count; i++)
+            {
+                string names = null;
+                if (projects[i].Participants != null)
+                {
+                    names = string.Join(", ", projects[i].Participants.Select(participant => participant.Name));
+                }
+                else
+                {
+                    names = "none";
+                }
+                Console.WriteLine($"{i + 1} - {projects[i].Name} - Status: {projects[i].Status} - Participants: {names}");
+            }
+            Console.Write("\nEnter the Project's index: ");
+            string input = Console.ReadLine();
+            if (int.TryParse(input, out int projectIndex))
+            {
+                var selectedProject = projects[projectIndex - 1];
+                if (selectedProject != null)
+                {
+                    return selectedProject;
+                }
+            }
+
+            Console.WriteLine("Invalid selection. Returning to the main menu.");
+            return null;
 
         }
 

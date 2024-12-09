@@ -16,14 +16,12 @@ namespace F7SPBE_HSZF_2024251.Application
         void CreateProject(Project project);
         void CreateProjects(List<Project> projects);
         void AssignProgrammersToProject(int projectId, List<int> programmerIds);
-        Project AssignProgrammersToProject(List<Programmer> programmers);
+        Project AssignProgrammersToProject(int id, Project projectSelected);
         List<Project> GetClosableProjects();
-        void CloseProject(int id);
+        void CloseProject(Project project);
         void UpdateProject(int id, Project project);
-        Project ListAndSelectProjects(List<Project> projects);
-        void CreateProject();
         List<Project> GetProjectsOfProgrammer(Programmer programmer);
-        Project AddTask(Project project, Programmer programmer);
+        Project AddTask(Project project, Programmer programmer, Task task);
         Project ModifyTask(Project project, Task task, Programmer programmer);
         void ExportDelayedProjects();
         List<Task> GetTasksForModifying(Project project, Programmer programmer);
