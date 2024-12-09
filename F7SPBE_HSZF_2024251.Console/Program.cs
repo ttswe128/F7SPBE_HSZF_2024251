@@ -118,11 +118,66 @@ namespace F7SPBE_HSZF_2024251
                         Console.ReadKey();
                         break;
                     case "4":
-                        taskService.UpdateTaskStatus(projectService.GetProjects(), programmerSignedIn);
+
+                        List<Project> projects = projectService.GetProjects();
+                        List<Task> tasks = taskService.GetTasksWithProgrammer(projects, programmerSignedIn);
+
+
+
+                        if (!tasks.Any())
+                        {
+                            Console.WriteLine($"{programmerSignedIn.Name} has no tasks assigned.");
+                            return;
+                        }
+
+                        Console.WriteLine($"Tasks assigned to {programmerSignedIn.Name}:");
+                        for (int i = 0; i < tasks.Count; i++)
+                        {
+                            Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
+                        }
+
+                        Task selectedTask = null;
+                        while (selectedTask == null)
+                        {
+                            Console.Write("\nEnter the Task's number here: ");
+                            if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
+                            {
+                                selectedTask = tasks[taskIndex - 1];
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid selection. Please try again.");
+                            }
+                        }
+
+
+                        Console.WriteLine($"\nModifying status for task: {selectedTask.Name}");
+                        Console.WriteLine("Available statuses: STARTED, IN_PROGRESS, CLOSED");
+
+                        EStatus newStatus;
+                        while (true)
+                        {
+                            Console.Write("Enter new status: ");
+                            if (Enum.TryParse(Console.ReadLine(), true, out newStatus))
+                            {
+                                selectedTask.Status = newStatus;
+                                Console.WriteLine($"\nTask '{selectedTask.Name}' status updated to '{newStatus}' successfully!");
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid status. Please try again.");
+                            }
+                        }
+
+
+                        taskService.UpdateTaskStatus(selectedTask.Id, selectedTask);
+
 
                         Console.WriteLine("\nPress any key to return to the menu...");
                         Console.ReadKey();
                         break;
+
                     case "5":
                         var projects5 = projectService.GetClosableProjects();
                         var selectedP = projectService.ListAndSelectProjects(projects5);

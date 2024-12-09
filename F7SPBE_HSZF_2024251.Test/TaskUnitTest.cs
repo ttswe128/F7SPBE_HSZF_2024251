@@ -58,21 +58,14 @@ namespace F7SPBE_HSZF_2024251.Test
                 ];
 
             var projects = Seeder.SeedProjects();
-            dp.Setup(dp => dp.GetTasksWithProgrammer(projects, programmer)).Returns(tasks);
 
-            var input = "1\nSTARTED\n";
-            using var inputReader = new StringReader(input);
-            using var outputWriter = new StringWriter();
+            var changedStatus = new Task(5, "Issue#89", "Optimize Rendering Engine", programmer, "Large", EStatus.CLOSED);
 
-            Console.SetIn(inputReader);
-            Console.SetOut(outputWriter);
             // Act
-            service.UpdateTaskStatus(projects, programmer);
+            service.UpdateTaskStatus(5, changedStatus);
 
             // Assert
-            var output = outputWriter.ToString();
-            Assert.IsTrue(output.Contains("Task 'Issue#66' status updated to 'STARTED' successfully!"));
-            dp.Verify(dp => dp.UpdateTask(2, It.Is<Task>(t => t.Status == EStatus.STARTED)), Times.Once);
+            dp.Verify(dp => dp.UpdateTask(5, It.Is<Task>(t => t.Status == EStatus.CLOSED)), Times.Once);
         }
     }
 }
