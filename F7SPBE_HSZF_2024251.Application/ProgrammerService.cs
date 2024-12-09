@@ -89,8 +89,6 @@ namespace F7SPBE_HSZF_2024251.Application
             string fileName = "_programmers_performance.json";
 
             File.WriteAllText(fileName, JsonConvert.SerializeObject(programmers));
-
-            Console.WriteLine("\nProgrammers' performance successfully exported to JSON.");
         }
     }
 }

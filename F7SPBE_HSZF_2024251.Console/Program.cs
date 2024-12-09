@@ -73,16 +73,42 @@ namespace F7SPBE_HSZF_2024251
                         string input3 = null;
                         while(input3 == null)
                         {
-                            Project projectToAddTaskToOrModify = projectService.GetProjectOfProgrammer(programmerSignedIn);
+                            List<Project> projectToSelect = projectService.GetProjectsOfProgrammer(programmerSignedIn);
+
+
+
+                            Console.WriteLine($"Projects assigned to {programmerSignedIn.Name}:");
+                            for (int i = 0; i < projectToSelect.Count; i++)
+                            {
+                                Console.WriteLine($"{i + 1}. Name: {projectToSelect[i].Name} - Description: {projectToSelect[i].Description}");
+                            }
+
+
+                            Project selectedProject = null;
+                            while (selectedProject == null)
+                            {
+                                Console.Write("\nEnter the Project's number here: ");
+                                if (int.TryParse(Console.ReadLine(), out int projectIndex) && projectIndex > 0 && projectIndex <= projectToSelect.Count)
+                                {
+                                    selectedProject = projectToSelect[projectIndex - 1];
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Invalid selection. Please try again.");
+                                }
+                            }
+
+
+
                             input3 = AddOrModifyTaskMenu();
                             if (input3.Equals("1"))
                             {
-                                projectService.AddTask(projectToAddTaskToOrModify, programmerSignedIn);
+                                projectService.AddTask(selectedProject, programmerSignedIn);
                             }
                             if (input3.Equals("2"))
                             {
 
-                                projectService.ModifyTask(projectToAddTaskToOrModify, programmerSignedIn);
+                                projectService.ModifyTask(selectedProject, programmerSignedIn);
                             }
                         }
 
@@ -111,10 +137,13 @@ namespace F7SPBE_HSZF_2024251
                             if (input6.Equals("1"))
                             {
                                 projectService.ExportDelayedProjects();
+                                Console.WriteLine($"\nDelayed projects exported successfully");
+
                             }
                             if (input6.Equals("2"))
                             {
                                 programmerService.ExportProgrammersPerformance();
+                                Console.WriteLine("\nProgrammers' performance successfully exported to JSON.");
                             }
                         }
 
@@ -200,7 +229,7 @@ namespace F7SPBE_HSZF_2024251
             Console.WriteLine("Unexpected error");
             return Menu();
         }
-        
+
         static void WelcomeMessage()
         {
             Console.SetWindowSize(84, 16);

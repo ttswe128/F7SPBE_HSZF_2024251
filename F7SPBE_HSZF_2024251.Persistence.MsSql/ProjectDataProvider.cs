@@ -103,37 +103,14 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             ctx.SaveChanges();
         }
 
-        public Project GetProjectOfProgrammer(Programmer programmer)
+        public List<Project> GetProjectsOfProgrammer(Programmer programmer)
         {
             List<Project> projects = ctx.Projects
                 .Where(p => p.Participants
                 .Contains(programmer))
                 .ToList();
 
-
-            if (!projects.Any()) Console.WriteLine($"{programmer.Name} is not assigned to any projects.");
-
-            Console.WriteLine($"Projects assigned to {programmer.Name}:");
-            for (int i = 0; i < projects.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. Name: {projects[i].Name} - Description: {projects[i].Description}");
-            }
-
-            Project selectedProject = null;
-            while (selectedProject == null)
-            {
-                Console.Write("\nEnter the Project's number here: ");
-                if (int.TryParse(Console.ReadLine(), out int projectIndex) && projectIndex > 0 && projectIndex <= projects.Count)
-                {
-                    selectedProject = projects[projectIndex - 1];
-                }
-                else
-                {
-                    Console.WriteLine("Invalid selection. Please try again.");
-                }
-            }
-
-            return selectedProject;
+            return projects;
         }
 
         public Project AddTask(Project project, Programmer programmer, Task task)
@@ -187,7 +164,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
 
             if (project.Id == null)
             {
-                throw new Exception("Project's Id is null");
+                throw new Exception("Project's ID is null");
             }
 
             Task taskToModify = projectToModify.Tasks.Where(t => t.Id == task.Id).First();

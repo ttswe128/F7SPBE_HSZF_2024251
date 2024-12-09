@@ -247,7 +247,15 @@ namespace F7SPBE_HSZF_2024251.Application
 
         }
 
-        public Project GetProjectOfProgrammer(Programmer programmer) => dp.GetProjectOfProgrammer(programmer);
+        public List<Project> GetProjectsOfProgrammer(Programmer programmer)
+        {
+
+            List<Project> projects = dp.GetProjectsOfProgrammer(programmer);
+            if (!projects.Any()) Console.WriteLine($"{programmer.Name} is not assigned to any projects.");
+
+            return projects;
+
+        }
 
         public Project AddTask(Project project, Programmer programmer)
         {
@@ -333,8 +341,7 @@ namespace F7SPBE_HSZF_2024251.Application
 
             if (!delayedProjects.Any())
             {
-                Console.WriteLine("No delayed projects found.");
-                return;
+                throw new Exception("No delayed projects found.");
             }
 
             var xmlDocument = new XElement("Projects",
@@ -354,10 +361,7 @@ namespace F7SPBE_HSZF_2024251.Application
                     )
                 );
 
-            // XML exportálása fájlba
             xmlDocument.Save("_delayed_projects.xml");
-
-            Console.WriteLine($"\nDelayed projects exported successfully");
         }
 
         public void SeedDb()

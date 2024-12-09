@@ -21,7 +21,7 @@ namespace F7SPBE_HSZF_2024251.Application
         void UpdateProject(int id, Project project);
         Project ListAndSelectProjects(List<Project> projects);
         void CreateProject();
-        Project GetProjectOfProgrammer(Programmer programmer);
+        List<Project> GetProjectsOfProgrammer(Programmer programmer);
         Project AddTask(Project project, Programmer programmer);
         Project ModifyTask(Project project, Programmer programmer);
         void ExportDelayedProjects();

@@ -19,7 +19,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
         void AssignProgrammersToProject(int projectId, List<int> programmerIds);
         List<Project> GetClosableProjects();
         void UpdateProject(int id, Project project);
-        Project GetProjectOfProgrammer(Programmer programmer);
+        List<Project> GetProjectsOfProgrammer(Programmer programmer);
         Project AddTask(Project project, Programmer programmer, Task task);
         Project ModifyTask(Project project, Task task);
         List<Project> GetDelayedProjects();

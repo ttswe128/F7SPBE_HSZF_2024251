@@ -32,7 +32,7 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Task with ID {id} couldn't be found");
+                throw new Exception($"Task with ID {id} couldn't be found");
             }
         }
 
