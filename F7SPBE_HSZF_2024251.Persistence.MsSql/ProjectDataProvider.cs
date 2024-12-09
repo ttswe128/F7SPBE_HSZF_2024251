@@ -121,37 +121,11 @@ namespace F7SPBE_HSZF_2024251.Persistence.MsSql
             return project;
         }
 
-        public Task GetTaskToModify(Project project, Programmer programmer)
+        public List<Task> GetTasksForModifying(Project project, Programmer programmer)
         {
-            var tasks = project.Tasks.Where(t => t.Responsible == programmer).Where(t => t.Responsible.Tasks.Any()).ToList();
+            List<Task> tasks = project.Tasks.Where(t => t.Responsible == programmer).Where(t => t.Responsible.Tasks.Any()).ToList();
 
-            if (!tasks.Any())
-            {
-                throw new Exception($"No tasks assigned to {programmer.Name} in this project.");
-            }
-
-            Console.WriteLine("\nTasks in the project:");
-            for (int i = 0; i < tasks.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
-            }
-
-
-            Task selectedTask = null;
-            while (selectedTask == null)
-            {
-                Console.Write("\nEnter the Task's number here: ");
-                if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
-                {
-                    selectedTask = tasks[taskIndex - 1];
-                }
-                else
-                {
-                    Console.WriteLine("Invalid selection. Please try again.");
-                }
-            }
-
-            return selectedTask;
+            return tasks;
         }
 
         public Project ModifyTask(Project project, Task task)

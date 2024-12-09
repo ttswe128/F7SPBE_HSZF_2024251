@@ -4,6 +4,7 @@ using F7SPBE_HSZF_2024251.Persistence.MsSql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Task = F7SPBE_HSZF_2024251.Model.Task;
 
 namespace F7SPBE_HSZF_2024251
@@ -108,7 +109,64 @@ namespace F7SPBE_HSZF_2024251
                             if (input3.Equals("2"))
                             {
 
-                                projectService.ModifyTask(selectedProject, programmerSignedIn);
+                                List<Task> tasks = projectService.GetTasksForModifying(selectedProject, programmerSignedIn);
+                                Console.WriteLine("\nTasks in the project:");
+                                for (int i = 0; i < tasks.Count; i++)
+                                {
+                                    Console.WriteLine($"{i + 1}. {tasks[i].Name} - {tasks[i].Description} - Size: {tasks[i].Size} - Status: {tasks[i].Status}");
+                                }
+                                Task selectedTask = null;
+                                while (selectedTask == null)
+                                {
+                                    Console.Write("\nEnter the Task's number here: ");
+                                    if (int.TryParse(Console.ReadLine(), out int taskIndex) && taskIndex > 0 && taskIndex <= tasks.Count)
+                                    {
+                                        selectedTask = tasks[taskIndex - 1];
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Invalid selection. Please try again.");
+                                    }
+                                }
+
+
+
+
+
+                                Console.WriteLine($"\nModifying task: {selectedTask.Id}");
+                                Console.WriteLine("Enter new Task Name (leave blank to keep current): ");
+                                string newTaskName = Console.ReadLine();
+                                if (!string.IsNullOrWhiteSpace(newTaskName))
+                                {
+                                    selectedTask.Name = newTaskName;
+                                }
+
+                                Console.WriteLine("Enter new Task Description (leave blank to keep current): ");
+                                string newTaskDescription = Console.ReadLine();
+                                if (!string.IsNullOrWhiteSpace(newTaskDescription))
+                                {
+                                    selectedTask.Description = newTaskDescription;
+                                }
+
+                                Console.WriteLine("Enter new Task Size (Leave blank to keep current): ");
+                                string newTaskSize = Console.ReadLine();
+                                if (!string.IsNullOrWhiteSpace(newTaskSize))
+                                {
+                                    selectedTask.Size = newTaskSize;
+                                }
+
+                                Console.WriteLine("Enter new Task Status (STARTED, IN_PROGRESS, CLOSED, leave blank to keep current): ");
+                                string newTaskStatus = Console.ReadLine();
+                                if (!string.IsNullOrWhiteSpace(newTaskStatus) && Enum.TryParse(newTaskStatus, true, out EStatus taskStatus))
+                                {
+                                    selectedTask.Status = taskStatus;
+                                }
+
+
+                                projectService.ModifyTask(selectedProject, selectedTask, programmerSignedIn);
+
+                                Console.WriteLine($"\nTask '{selectedTask.Name}' modified successfully!");
+
                             }
                         }
 

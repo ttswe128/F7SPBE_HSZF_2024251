@@ -294,43 +294,14 @@ namespace F7SPBE_HSZF_2024251.Application
             return projectToReturn;
         }
 
-        public Project ModifyTask(Project project, Programmer programmer)
+        public List<Task> GetTasksForModifying(Project project, Programmer programmer)
         {
-            Task task = dp.GetTaskToModify(project, programmer);
+            return dp.GetTasksForModifying(project, programmer);
+        }
 
-            Console.WriteLine($"\nModifying task: {task.Id}");
-            Console.WriteLine("Enter new Task Name (leave blank to keep current): ");
-            string newTaskName = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskName))
-            {
-                task.Name = newTaskName;
-            }
-
-            Console.WriteLine("Enter new Task Description (leave blank to keep current): ");
-            string newTaskDescription = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskDescription))
-            {
-                task.Description = newTaskDescription;
-            }
-
-            Console.WriteLine("Enter new Task Size (Leave blank to keep current): ");
-            string newTaskSize = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskSize))
-            {
-                task.Size = newTaskSize;
-            }
-
-            Console.WriteLine("Enter new Task Status (STARTED, IN_PROGRESS, CLOSED, leave blank to keep current): ");
-            string newTaskStatus = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newTaskStatus) && Enum.TryParse(newTaskStatus, true, out EStatus taskStatus))
-            {
-                task.Status = taskStatus;
-            }
-
+        public Project ModifyTask(Project project, Task task, Programmer programmer)
+        {
             dp.ModifyTask(project, task);
-
-            Console.WriteLine($"\nTask '{task.Name}' modified successfully!");
-
             return project;
 
         }

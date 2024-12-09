@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Task = F7SPBE_HSZF_2024251.Model.Task;
 
 namespace F7SPBE_HSZF_2024251.Application
 {
@@ -23,9 +24,9 @@ namespace F7SPBE_HSZF_2024251.Application
         void CreateProject();
         List<Project> GetProjectsOfProgrammer(Programmer programmer);
         Project AddTask(Project project, Programmer programmer);
-        Project ModifyTask(Project project, Programmer programmer);
+        Project ModifyTask(Project project, Task task, Programmer programmer);
         void ExportDelayedProjects();
-
+        List<Task> GetTasksForModifying(Project project, Programmer programmer);
         void SeedDb();
     }
 }
